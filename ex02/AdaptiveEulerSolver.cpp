@@ -23,9 +23,11 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 
 			Length3D p_temp1 = p->position + stepsize_temp * p->velocity;
 			Length3D p_temp2 = p->position;
+			Velocity3D v_temp = p->velocity;
 			for(int i = 0; i < 2; i++)
 			{
-				p_temp2 += stepsize_temp/2 * p->velocity;
+				p_temp2 += stepsize_temp/2 * v_temp;
+				v_temp += stepsize_temp/2 * p->acceleration;
 			}
 			
 			if(norm(p_temp1 - p_temp2) <= _threshold)
