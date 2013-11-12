@@ -9,47 +9,44 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 	 * Do not forget to increment the current time of the system when you are done.
 	 */
 
+	Time stepsize_new; 
+	Time cum_stepsize = 0 * s;
+	Length err_max = 0 * m;
+	
 	_system->computeAccelerations();
-    for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
-    {
-		Time stepsize_new, stepsize_temp = stepsize;
-
-		//repeat explicit euler till cumulated stepsize (cum_stepsize) is equal to function stepsize
-		Time cum_stepsize = 0 * s;
-		while (cum_stepsize != stepsize)
-		{
-			//Calculate adaptive stepsize (stepsize_new)
-			Length err_max = 0 * m;
-
-			Length3D p_temp1 = p->position + stepsize_temp * p->velocity;
-			Length3D p_temp2 = p->position;
-			Velocity3D v_temp = p->velocity;
-			for(int i = 0; i < 2; i++)
-			{
-				p_temp2 += stepsize_temp/2 * v_temp;
-				v_temp += stepsize_temp/2 * p->acceleration;
-			}
-			
-			if(norm(p_temp1 - p_temp2) <= _threshold)
-			{
-				stepsize_temp = stepsize_temp / 2;
-				//set adaptive stepsize to actual stepsize
-				stepsize_new = stepsize_temp;
+	//Calculate adaptive stepsize (stepsize_new)
+	for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
+	{
+		Length3D p_temp1 = p->position + stepsize * p->velocity;
 		
-				//Compute new position and velocity with adaptive stepsize_new
-				p->position += stepsize_new * p->velocity;
-				p->velocity += stepsize_new * p->acceleration;
+		Length3D p_temp2 = p->position + stepsize/2 * p->velocity;
+		Velocity3D v_temp = stepsize/2 * p->acceleration;
+		p_temp2 += stepsize/2 * v_temp;
 
-				//add actual stepsize to cumulated stepsize
-				cum_stepsize += stepsize_new;
-			}	
-			else
-			{
-				std::cout << "Condition not fullfilled. Reducing stepsize by 1 second" << std::endl;
-				stepsize_temp -= 1 * s;
-			}		
+		if(norm(p_temp1-p_temp2) > err_max)
+			err_max = norm(p_temp1-p_temp2);
+	}
+	
+	//compare errors
+	if(err_max > _threshold)
+	{
+		std::cout << "Condition not fullfilled. Reducing stepsize...";
+		stepsize_new = stepsize * pow(0.5,(_threshold/err_max));
+		std::cout << "finished" << std::endl;
+	}	
+	while (cum_stepsize < stepsize)
+	{
+		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
+		{
+			//Compute new position and velocity with adaptive stepsize_new
+			p->position += stepsize_new * p->velocity;
+			p->velocity += stepsize_new * p->acceleration;
 		}
-    }
+
+		//add actual stepsize to cumulated stepsize
+		cum_stepsize += stepsize_new;
+	}	
+  
 	// Increment the current system time.
 	_system->time += stepsize;
 }
