@@ -12,30 +12,37 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 	Time stepsize_new; 
 	Time cum_stepsize = 0 * s;
 	Length err_max = 0 * m;
-	
-	_system->computeAccelerations();
-	//Calculate adaptive stepsize (stepsize_new)
-	for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
-	{
-		Length3D p_temp1 = p->position + stepsize * p->velocity;
-		
-		Length3D p_temp2 = p->position + stepsize/2 * p->velocity;
-		Velocity3D v_temp = stepsize/2 * p->acceleration;
-		p_temp2 += stepsize/2 * v_temp;
 
-		if(norm(p_temp1-p_temp2) > err_max)
-			err_max = norm(p_temp1-p_temp2);
-	}
-	
-	//compare errors
-	if(err_max > _threshold)
-	{
-		std::cout << "Condition not fullfilled. Reducing stepsize...";
-		stepsize_new = stepsize * pow(0.5,(_threshold/err_max));
-		std::cout << "finished" << std::endl;
-	}	
+	//repeat: find stepsize, compute explicit euler till cumulated stepsize is equal stepsize
 	while (cum_stepsize < stepsize)
 	{
+		_system->computeAccelerations();
+		//Calculate adaptive stepsize (stepsize_new)
+		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
+		{
+			Length3D p_temp1 = p->position + stepsize * p->velocity;
+		
+			Length3D p_temp2 = p->position + stepsize/2 * p->velocity;
+			Velocity3D v_temp = stepsize/2 * p->acceleration;
+			p_temp2 += stepsize/2 * v_temp;
+
+			if(norm(p_temp1-p_temp2) > err_max)
+				err_max = norm(p_temp1-p_temp2);
+		}
+	
+		//compare err_max of the particle system with threshold distance
+		if(err_max > _threshold)
+		{
+			std::cout << "Condition not fullfilled. Reducing stepsize...";
+			stepsize_new = stepsize * pow(0.5,(_threshold/err_max));
+			std::cout << "finished" << std::endl;
+		} else
+		{
+			std::cout << "Continue with function stepsize.";
+			stepsize_new = stepsize;
+		}
+
+		//compute explicit euler
 		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
 		{
 			//Compute new position and velocity with adaptive stepsize_new
