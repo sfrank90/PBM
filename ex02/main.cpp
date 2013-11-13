@@ -7,6 +7,8 @@
 #include <fstream>
 #include <algorithm>
 #include <iomanip>
+#include <stdio.h>
+#include <string.h>
 
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
@@ -134,7 +136,7 @@ int main(int argc, char *argv[]) {
 		steps_per_year = atof(argv[1]);
 	} else if (argc == 3|| argc == 4) { // file output
 		int i = 1;
-		if(argc == 4 && strcmp(argv[1],"c")==0) {
+        if(argc == 4 && strcmp(argv[1],"c")==0) {
 			compare = true; 
 			i++;
 		}
@@ -169,8 +171,8 @@ int main(int argc, char *argv[]) {
 	// Create a particle system and a solver.
 	particle_system = new GravitationalSystem(particles);
 	//solver = new EulerSolver(particle_system);
-	solver = new AdaptiveEulerSolver(particle_system, 1e3 * m);
-	//solver = new RungeKuttaSolver(particle_system);
+    solver = new AdaptiveEulerSolver(particle_system, 1e3 * m);
+    //solver = new RungeKuttaSolver(particle_system);
 
 	if (years < 0) { // interactive
 		glutInit(&argc, argv);

@@ -30,47 +30,73 @@ void RungeKuttaSolver::step(const Time stepsize)  {
 	 * When your computation is done, store the new x and v values in the particles.
 	 * Do not forget to increment the current time of the system when you are done.
 	 */
-	Length3D p0, p1, p2, p3, p4;
-	Velocity3D v0, v1, v2, v3, v4;
-	Acceleration3D a1, a2, a3, a4;
 
-	_system->computeAccelerations();
-    for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
-    {
-		//get actual values for the particle
-		p0 = p->position;
-		v0 = p->velocity;
-
-		//runge kutta 4th order
-		p1 = p0;
-        v1 = v0;
-		a1 = p->acceleration;
-		
-		p2 = p0 + v1 * stepsize * 0.5;
-		p->position = p2;
-		_system->computeAccelerations();
-		a2 = p->acceleration;
-        v2 = v0 + a1 *stepsize * 0.5;	
-		
-		p3 = p0 + v2 * stepsize * 0.5;
-		p->velocity = v2; p->position = p3;
-		_system->computeAccelerations();
-		a3 = p->acceleration;
-        v3 = v0 + a2 * stepsize * 0.5;
-
-		p4 = p0 + v3 * stepsize;
-		p->velocity = v3; p->position = p4;
-		_system->computeAccelerations();
-		a4 = p->acceleration;
-        v4 = v0 + a3 * stepsize;
-
-		//set final values for new position and velocity
-		p->position = p0 + (stepsize * (v1 + 2 * v2 + 2 * v3 + v4))/6;
-		p->velocity = v0 + (stepsize * (a1 + 2 * a2 + 2 * a3 + a4))/6;
-
+    // stroe original values for p0 and v0
+    std::vector<Length3D> p0;
+    std::vector<Velocity3D> v0;
+    for (size_t i = 0; i < _system->particles.size(); ++i) {
+        p0.push_back(_system->particles[i].position);
+        v0.push_back(_system->particles[i].velocity);
     }
-	// Increment the current system time.
-	_system->time += stepsize;
+
+    // Compute K1
+    _system->computeAccelerations();
+    std::vector<Velocity3D> k_v1;
+    std::vector<Acceleration3D> k_a1;
+    for (size_t i = 0; i < _system->particles.size(); ++i) {
+        //store velocity v0 and computed a(p0) for each particle
+        k_v1.push_back(_system->particles[i].velocity);
+        k_a1.push_back(_system->particles[i].acceleration);
+
+        //compute new dp1 and dv1
+        _system->particles[i].position = p0[i] + 0.5 * stepsize * k_v1[i];
+        _system->particles[i].velocity = v0[i] + 0.5 * stepsize * k_a1[i];
+    }
+
+    // Compute K2
+    _system->computeAccelerations();
+    std::vector<Velocity3D> k_v2;
+    std::vector<Acceleration3D> k_a2;
+    for (size_t i = 0; i < _system->particles.size(); ++i) {
+        //store values for K2
+        k_v2.push_back(_system->particles[i].velocity);
+        k_a2.push_back(_system->particles[i].acceleration);
+
+        //compute new dp2 and dv2
+        _system->particles[i].position = p0[i] + 0.5 * stepsize * k_v2[i];
+        _system->particles[i].velocity = v0[i] + 0.5 * stepsize * k_a2[i];
+    }
+
+    // Compute K3
+    _system->computeAccelerations();
+    std::vector<Velocity3D> k_v3;
+    std::vector<Acceleration3D> k_a3;
+    for (size_t i = 0; i < _system->particles.size(); ++i) {
+        //store values for K3
+        k_v3.push_back(_system->particles[i].velocity);
+        k_a3.push_back(_system->particles[i].acceleration);
+
+        //compute new dp3 and dv3
+        _system->particles[i].position = p0[i] + stepsize * k_v3[i];
+        _system->particles[i].velocity = v0[i] + stepsize * k_a3[i];
+    }
+
+    // Compute K4 and final result for p and v
+    _system->computeAccelerations();
+    std::vector<Velocity3D> k_v4;
+    std::vector<Acceleration3D> k_a4;
+    for (size_t i = 0; i < _system->particles.size(); ++i) {
+        //store values for K4
+        k_v4.push_back(_system->particles[i].velocity);
+        k_a4.push_back(_system->particles[i].acceleration);
+
+        //final computation for p and v
+        _system->particles[i].position = p0[i] + stepsize / 6.0 * (k_v1[i] + 2.0 * k_v2[i] + 2.0 * k_v3[i] + k_v4[i]);
+        _system->particles[i].velocity = v0[i] + stepsize / 6.0 * (k_a1[i] + 2.0 * k_a2[i] + 2.0 * k_a3[i] + k_a4[i]);
+    }
+
+    // increment system time
+    _system->time += stepsize;
 
 }
 

@@ -9,13 +9,14 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 	 * Do not forget to increment the current time of the system when you are done.
 	 */
 
-	Time stepsize_new; 
 	Time cum_stepsize = 0 * s;
 	Length err_max = 0 * m;
+    int i = 0;
 
 	//repeat: find stepsize, compute explicit euler till cumulated stepsize is equal stepsize
 	while (cum_stepsize != stepsize)
 	{
+        Time stepsize_opt = stepsize - cum_stepsize;
 		_system->computeAccelerations();
 		//Calculate adaptive stepsize (stepsize_new)
 		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
@@ -26,39 +27,37 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 			Velocity3D v_temp = stepsize/2 * p->acceleration;
 			p_temp2 += stepsize/2 * v_temp;
 
-			if(norm(p_temp1-p_temp2) > err_max)
-				err_max = norm(p_temp1-p_temp2);
+            err_max = maximum(err_max, norm(p_temp1-p_temp2));
 		}
 	
 		//compare err_max of the particle system with threshold distance
 		if(err_max > _threshold)
 		{
-			std::cout << "Condition not fullfilled. Reducing stepsize...";
-			stepsize_new = stepsize * pow(0.5,(_threshold/err_max));
-			std::cout << "finished" << std::endl;
-		} else
-		{
-			std::cout << "Continue with function stepsize.";
-			stepsize_new = stepsize;
-		}
+            //std::cout << "Condition not fullfilled. Reducing stepsize...";
+            stepsize_opt= stepsize * quantity::sqrt(_threshold/err_max);
+            //std::cout << "finished" << std::endl;
+        }
 
 		//correct stepsize if nessecary
-		if(cum_stepsize + stepsize_new > stepsize)
-			stepsize_new = stepsize - cum_stepsize;
+        if(cum_stepsize + stepsize_opt > stepsize)
+            stepsize_opt = stepsize - cum_stepsize;
 
 		//compute explicit euler
 		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
 		{
 			//Compute new position and velocity with adaptive stepsize_new
-			p->position += stepsize_new * p->velocity;
-			p->velocity += stepsize_new * p->acceleration;
+            p->position += stepsize_opt * p->velocity;
+            p->velocity += stepsize_opt * p->acceleration;
 		}
 
 		//add actual stepsize to cumulated stepsize
-		cum_stepsize += stepsize_new;
+        cum_stepsize += stepsize_opt;
+        ++i;
 	}	
+    if(i > 1)
+        std::cout << i << " steps in adaptive Euler solver" << std::endl;
   
 	// Increment the current system time.
-	_system->time += stepsize;
+    _system->time += stepsize;
 }
 
