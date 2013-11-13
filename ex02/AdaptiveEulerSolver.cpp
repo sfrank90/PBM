@@ -10,22 +10,23 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 	 */
 
 	Time cum_stepsize = 0 * s;
-	Length err_max = 0 * m;
     int i = 0;
 
 	//repeat: find stepsize, compute explicit euler till cumulated stepsize is equal stepsize
-	while (cum_stepsize != stepsize)
+    while (cum_stepsize != stepsize)
 	{
+        Length err_max = 0 * m;
         Time stepsize_opt = stepsize - cum_stepsize;
 		_system->computeAccelerations();
 		//Calculate adaptive stepsize (stepsize_new)
 		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
 		{
-			Length3D p_temp1 = p->position + stepsize * p->velocity;
-		
-			Length3D p_temp2 = p->position + stepsize/2 * p->velocity;
-			Velocity3D v_temp = stepsize/2 * p->acceleration;
-			p_temp2 += stepsize/2 * v_temp;
+            Length3D p_temp1 = p->position + stepsize_opt * p->velocity;
+
+            Length3D p_temp2 = p->position + 0.5 * stepsize_opt * p->velocity;
+            Velocity3D v_temp = p->velocity + 0.5 * stepsize_opt * p->acceleration;
+
+            p_temp2 += stepsize_opt/2 * v_temp;
 
             err_max = maximum(err_max, norm(p_temp1-p_temp2));
 		}
@@ -33,9 +34,7 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 		//compare err_max of the particle system with threshold distance
 		if(err_max > _threshold)
 		{
-            //std::cout << "Condition not fullfilled. Reducing stepsize...";
             stepsize_opt= stepsize * quantity::sqrt(_threshold/err_max);
-            //std::cout << "finished" << std::endl;
         }
 
 		//correct stepsize if nessecary

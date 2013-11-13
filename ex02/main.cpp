@@ -260,32 +260,32 @@ int main(int argc, char *argv[]) {
 			}*/
 
 			// Dump the current status into the data file.
-		if(step % 100 != 0)
-			continue;
+            if(step % 100 != 0)
+                continue;
 
-		outfile << "Time " << std::setw(15)<< t.value() << "|";
-		outfile << std::setw(11)<< "Truth";
-		for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
-			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
-		outfile << std::endl;
+            outfile << "Time " << std::setw(15)<< t.value() << "|";
+            outfile << std::setw(11)<< "Truth";
+            for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
+                outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+            outfile << std::endl;
 
-		outfile <<std::setw(20)<< " " << "|";
-		outfile << std::setw(11)<< "Euler";
-		for (std::vector<Particle>::const_iterator p = newParticles[0].begin(); p != newParticles[0].end(); ++p)
-			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
-		outfile << std::endl;
+            outfile <<std::setw(20)<< " " << "|";
+            outfile << std::setw(11)<< "Euler";
+            for (std::vector<Particle>::const_iterator p = newParticles[0].begin(); p != newParticles[0].end(); ++p)
+                outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+            outfile << std::endl;
 
-		outfile <<std::setw(20)<< " " << "|";
-		outfile <<std::setw(11)<<  "Ad. Euler";
-		for (std::vector<Particle>::const_iterator p = newParticles[1].begin(); p != newParticles[1].end(); ++p)
-			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
-		outfile << std::endl;
+            outfile <<std::setw(20)<< " " << "|";
+            outfile <<std::setw(11)<<  "Ad. Euler";
+            for (std::vector<Particle>::const_iterator p = newParticles[1].begin(); p != newParticles[1].end(); ++p)
+                outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+            outfile << std::endl;
 
-		outfile <<std::setw(20) << " " << "|";
-		outfile <<std::setw(11) << "Runge Kutta";
-		for (std::vector<Particle>::const_iterator p = newParticles[2].begin(); p != newParticles[2].end(); ++p)
-			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
-		outfile << std::endl<<std::endl;
+            outfile <<std::setw(20) << " " << "|";
+            outfile <<std::setw(11) << "Runge Kutta";
+            for (std::vector<Particle>::const_iterator p = newParticles[2].begin(); p != newParticles[2].end(); ++p)
+                outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+            outfile << std::endl<<std::endl;
 
 		}
 
