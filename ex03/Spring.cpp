@@ -6,7 +6,12 @@ Force3D Spring::getForce() const {
 	 * are stored in "stiffness" and "damping", respectively.
 	 * The two particles are "p1" and "p2".
 	 */
-	Force3D f;
-	return f;
+	Length3D diff_pos = p2->position - p1->position;
+	Velocity3D diff_vel = p2->velocity - p1->velocity;
+
+	Force3D f_hooke = stiffness * (norm(diff_pos) - length) * (diff_pos / norm(diff_pos));
+	Force3D f_damp = ((damping * diff_vel) * (diff_pos / norm(diff_pos))) *(diff_pos / norm(diff_pos));
+
+	return f_hooke + f_damp;
 }
 

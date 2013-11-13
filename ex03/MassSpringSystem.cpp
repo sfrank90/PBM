@@ -20,5 +20,29 @@ void MassSpringSystem::computeAccelerations() {
 	 * stored in "_wind_force", while the period of the oscillating wind direction is stored in
 	 * "_wind_period".
 	 */
+
+	//set the acceleration of all particles to zero
+	for (std::vector<Particle>::iterator p = particles.begin(); p != particles.end(); ++p) {
+		p->acceleration[0] = p->acceleration[1] = p->acceleration[2] = 0 * m / s / s;
+	}
+
+	for (std::vector<Spring>::const_iterator s = _springs.begin(); s != _springs.end(); ++s) {
+		//get forces for each spring
+		Force3D f_spring = s->getForce();
+
+		//general forces
+		Force3D f_gravity = (s->p1->mass * s->p2->mass) / ((s->p2->position - s->p1->position) * (s->p2->position - s->p1->position)) * G;
+		Force f_wind = _wind_force;
+		
+		//forces for p1: gravity, damping, wind
+		Force3D f_damp = _damping * s->p1->velocity;
+		//calculate acceleration for particles one (p1)
+		s->p1->acceleration = f_spring / s->p1->mass;
+
+		//forces for p2: damping
+		f_damp = _damping * s->p2->velocity;
+		//calculate acceleration for particles two (p2)
+		s->p2->acceleration = (-1.0)* f_spring / s->p2->mass;
+	}
 }
 
