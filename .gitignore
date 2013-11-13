@@ -31,3 +31,6 @@ wiki/
 *.vcxproj
 *.vcxproj.filters
 *.v11.suo
+*.vcxproj.user
+*.pdb
+*.ilk
