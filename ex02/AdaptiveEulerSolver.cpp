@@ -14,7 +14,7 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 	Length err_max = 0 * m;
 
 	//repeat: find stepsize, compute explicit euler till cumulated stepsize is equal stepsize
-	while (cum_stepsize < stepsize)
+	while (cum_stepsize != stepsize)
 	{
 		_system->computeAccelerations();
 		//Calculate adaptive stepsize (stepsize_new)
