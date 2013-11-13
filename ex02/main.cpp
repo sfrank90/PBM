@@ -5,6 +5,8 @@
 
 #include <cmath>
 #include <fstream>
+#include <algorithm>
+#include <iomanip>
 
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
@@ -125,13 +127,19 @@ void keyboard(unsigned char key, int x, int y) {
  */
 int main(int argc, char *argv[]) {
 	int years = -1; // Number of simulation years to simulate.
+	bool compare = false;
 	if (argc == 1) { // interactive with default step size
 		steps_per_year = 5000;
 	} else if (argc == 2) { // interactive
 		steps_per_year = atof(argv[1]);
-	} else if (argc == 3) { // file output
-		years = atoi(argv[1]);
-		steps_per_year = atof(argv[2]);
+	} else if (argc == 3|| argc == 4) { // file output
+		int i = 1;
+		if(argc == 4 && strcmp(argv[1],"c")==0) {
+			compare = true; 
+			i++;
+		}
+		years = atoi(argv[i]);
+		steps_per_year = atof(argv[i+1]);
 	} else {
 		std::cerr << "Usage:" << std::endl;
 		std::cerr << "interactive: " << argv[0] << " steps_per_year" << std::endl;
@@ -149,6 +157,12 @@ int main(int argc, char *argv[]) {
 		infile >> name >> mass >> position >> velocity; // Read data from file.
 		if (!infile.good()) // If the end of the file is reached, ignore this (incomplete) entry.
 			break;
+
+		if(compare) {
+			if(name != "Sun" && name != "Earth")
+				continue;
+		}
+
 		particles.push_back(Particle(mass * kg, position * ex * km, velocity * ey * km / s, name)); // Add a new particle.
 	}
 
@@ -171,7 +185,114 @@ int main(int argc, char *argv[]) {
 		glutMotionFunc(motion);
 		glutKeyboardFunc(keyboard);
 		glutMainLoop();
-	} else { // file output
+	} else if(compare) {
+		////////////////////////////
+		// Code by Alexander Knüppel
+		////////////////////////////
+
+		// Open a data file for dumping the simulation results.
+		std::ofstream outfile("compare_solvers.dat");
+		Solver *solver[3];
+		System *system[3];
+		std::vector<Particle> newParticles[3];
+
+		newParticles[0].push_back(particles[0]);
+		newParticles[0].push_back(particles[1]);
+		newParticles[1].push_back(particles[0]);
+		newParticles[1].push_back(particles[1]);
+		newParticles[2].push_back(particles[0]);
+		newParticles[2].push_back(particles[1]);
+		
+		system[0] = new GravitationalSystem(newParticles[0]);
+		system[1] = new GravitationalSystem(newParticles[1]);
+		system[2] = new GravitationalSystem(newParticles[2]);
+
+		solver[0] = new EulerSolver(system[0]);
+		solver[1] = new AdaptiveEulerSolver(system[1] , 1e3 * m);
+	    solver[2] = new RungeKuttaSolver(system[2]);
+
+
+		/*
+		#Time                   Sun x  Sun y  Earth x Earth y
+		time: 0 | Ground Truth:
+		        | Expl. Euler: 
+		        | Adapt. Euler:
+				| Runge Kutta:
+		*/
+		outfile.setf(std::ios_base::left);
+		outfile << std::setw(20) << "#Time [s]" << "|";
+		outfile << std::setw(11) << "Solver" << "|";
+		outfile << std::setw(13) << "SunX [km]" << "|";
+		outfile << std::setw(13) << "SunY [km]" << "|";
+		outfile << std::setw(13) << "EarthX [km]" << "|";
+		outfile << std::setw(13) << "EarthY [km]" << "|" << std::endl;
+		outfile << "====================================================================="<< std::endl;
+		outfile << std::setw(20) <<"Time 0 s" <<"|"<< std::setw(11)<<" ";
+		for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
+			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+		outfile << std::endl;
+
+		Length3D posEarth = particles[1].position;
+		Length3D posSun = particles[0].position;
+		// Perform the number of iterations that was specified on the command line.
+		for (int step = 1; step <= years * steps_per_year; ++step) {
+			// Perform one step.
+			solver[0]->step(365 * days / steps_per_year);
+			solver[1]->step(365 * days / steps_per_year);
+			solver[2]->step(365 * days / steps_per_year);
+			//ground truth
+			Acceleration3D accEarth = G * particles[0].mass * (particles[0].position - particles[1].position)
+				                                              / pow<3>(norm(particles[1].position - particles[0].position));
+			Acceleration3D accSun = G * particles[1].mass * (particles[1].position - particles[0].position)
+				                                              / pow<3>(norm(particles[0].position - particles[1].position));
+			
+			Time t = step*(365 * days / steps_per_year);
+			particles[0].position = posSun   + t*particles[0].velocity + 0.5*t*t*accSun;
+			particles[1].position = posEarth + t*particles[1].velocity + 0.5*t*t*accEarth;
+			// Print the current status every debug time steps.
+			/*if (debug && step % debug == 0) {
+				std::cout << "Status after step " << step << ":" << std::endl;
+				for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
+					std::cout << *p << std::endl;
+				std::cout << std::endl;
+			}*/
+
+			// Dump the current status into the data file.
+		if(step % 100 != 0)
+			continue;
+
+		outfile << "Time " << std::setw(15)<< t.value() << "|";
+		outfile << std::setw(11)<< "Truth";
+		for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
+			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+		outfile << std::endl;
+
+		outfile <<std::setw(20)<< " " << "|";
+		outfile << std::setw(11)<< "Euler";
+		for (std::vector<Particle>::const_iterator p = newParticles[0].begin(); p != newParticles[0].end(); ++p)
+			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+		outfile << std::endl;
+
+		outfile <<std::setw(20)<< " " << "|";
+		outfile <<std::setw(11)<<  "Ad. Euler";
+		for (std::vector<Particle>::const_iterator p = newParticles[1].begin(); p != newParticles[1].end(); ++p)
+			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+		outfile << std::endl;
+
+		outfile <<std::setw(20) << " " << "|";
+		outfile <<std::setw(11) << "Runge Kutta";
+		for (std::vector<Particle>::const_iterator p = newParticles[2].begin(); p != newParticles[2].end(); ++p)
+			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
+		outfile << std::endl<<std::endl;
+
+		}
+
+		outfile.close();
+		////////////////////////////
+	}
+	
+	
+	else { // file output
 		// Open a data file for dumping the simulation results.
 		std::ofstream outfile("ex01.dat");
 		outfile << 0;
