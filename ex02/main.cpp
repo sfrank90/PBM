@@ -194,9 +194,9 @@ int main(int argc, char *argv[]) {
 
 		// Open a data file for dumping the simulation results.
 		std::ofstream outfile("compare_solvers.dat");
-		Solver *solver[3];
-		System *system[3];
-		std::vector<Particle> newParticles[3];
+        Solver *solver[4];
+        System *system[4];
+        std::vector<Particle> newParticles[4];
 
 		newParticles[0].push_back(particles[0]);
 		newParticles[0].push_back(particles[1]);
@@ -204,14 +204,18 @@ int main(int argc, char *argv[]) {
 		newParticles[1].push_back(particles[1]);
 		newParticles[2].push_back(particles[0]);
 		newParticles[2].push_back(particles[1]);
+        newParticles[3].push_back(particles[0]);
+        newParticles[3].push_back(particles[1]);
 		
 		system[0] = new GravitationalSystem(newParticles[0]);
 		system[1] = new GravitationalSystem(newParticles[1]);
 		system[2] = new GravitationalSystem(newParticles[2]);
+        system[3] = new GravitationalSystem(newParticles[3]);
 
 		solver[0] = new EulerSolver(system[0]);
 		solver[1] = new AdaptiveEulerSolver(system[1] , 1e3 * m);
 	    solver[2] = new RungeKuttaSolver(system[2]);
+        solver[3] = new AdaptiveEulerSolver(system[3] , 1e3 * m);
 
 
 		/*
@@ -234,38 +238,25 @@ int main(int argc, char *argv[]) {
 			outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
 		outfile << std::endl;
 
-		Length3D posEarth = particles[1].position;
-		Length3D posSun = particles[0].position;
 		// Perform the number of iterations that was specified on the command line.
-		for (int step = 1; step <= years * steps_per_year; ++step) {
+        for (int step = 1; step <= years * steps_per_year; ++step) {
 			// Perform one step.
 			solver[0]->step(365 * days / steps_per_year);
 			solver[1]->step(365 * days / steps_per_year);
+            //Ground truth by adaptive euler with small stepsize
 			solver[2]->step(365 * days / steps_per_year);
-			//ground truth
-			Acceleration3D accEarth = G * particles[0].mass * (particles[0].position - particles[1].position)
-				                                              / pow<3>(norm(particles[1].position - particles[0].position));
-			Acceleration3D accSun = G * particles[1].mass * (particles[1].position - particles[0].position)
-				                                              / pow<3>(norm(particles[0].position - particles[1].position));
-			
-			Time t = step*(365 * days / steps_per_year);
-			particles[0].position = posSun   + t*particles[0].velocity + 0.5*t*t*accSun;
-			particles[1].position = posEarth + t*particles[1].velocity + 0.5*t*t*accEarth;
-			// Print the current status every debug time steps.
-			/*if (debug && step % debug == 0) {
-				std::cout << "Status after step " << step << ":" << std::endl;
-				for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
-					std::cout << *p << std::endl;
-				std::cout << std::endl;
-			}*/
+            for(int i = 0; i < 100; i++)
+                solver[3]->step(365 * days / steps_per_year / 100.0);
+
+            Time t = step*(365 * days / steps_per_year);
 
 			// Dump the current status into the data file.
             if(step % 100 != 0)
                 continue;
 
             outfile << "Time " << std::setw(15)<< t.value() << "|";
-            outfile << std::setw(11)<< "Truth";
-            for (std::vector<Particle>::const_iterator p = particles.begin(); p != particles.end(); ++p)
+            outfile << std::setw(11)<< "Truth (A.E)";
+            for (std::vector<Particle>::const_iterator p = newParticles[3].begin(); p != newParticles[3].end(); ++p)
                 outfile << "|" << std::setw(13) << p->position[0].value() << " | " << std::setw(13) << p->position[1].value();
             outfile << std::endl;
 

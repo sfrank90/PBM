@@ -53,8 +53,7 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
         cum_stepsize += stepsize_opt;
         ++i;
 	}	
-    if(i > 1)
-        std::cout << i << " steps in adaptive Euler solver" << std::endl;
+    //std::cout << i << " steps in adaptive Euler solver" << std::endl;
   
 	// Increment the current system time.
     _system->time += stepsize;
