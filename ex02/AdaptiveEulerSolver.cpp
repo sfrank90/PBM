@@ -42,6 +42,10 @@ void AdaptiveEulerSolver::step(const Time stepsize) {
 			stepsize_new = stepsize;
 		}
 
+		//correct stepsize if nessecary
+		if(cum_stepsize + stepsize_new > stepsize)
+			stepsize_new = stepsize - cum_stepsize;
+
 		//compute explicit euler
 		for (std::vector<Particle>::iterator p = _system->particles.begin(); p != _system->particles.end(); ++p)
 		{
