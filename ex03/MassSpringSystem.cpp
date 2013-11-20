@@ -20,22 +20,20 @@ void MassSpringSystem::computeAccelerations() {
 	 * stored in "_wind_force", while the period of the oscillating wind direction is stored in
 	 * "_wind_period".
 	 */
-	
+    Acceleration3D g;
+    g[0] = 0.0 * m / s / s;
+    g[1] = - 9.81 * m / s / s;
+    g[2] = 0.0 * m / s / s;
+
+    //wind force
+    Number3D wind;
+    wind[0] = 1.5 + cos(time / _wind_period);
+    wind[1] = 0;
+    wind[2] = sin(time / _wind_period);
 
 	//set the acceleration of all particles to zero
 	for (std::vector<Particle>::iterator p = particles.begin(); p != particles.end(); ++p) {
 		p->acceleration[0] = p->acceleration[1] = p->acceleration[2] = 0 * m / s / s;
-
-		Acceleration3D g; 
-		g[0] = 0.0 * m / s / s; 
-		g[1] = - 9.81 * m / s / s; 
-		g[2] = 0.0 * m / s / s;
-
-		//wind force
-		Number3D wind;
-		wind[0] = 1.5 + cos(time / _wind_period);
-		wind[1] = 0;
-		wind[2] = sin(time / _wind_period);
 
 		if(!p->fixed) {
 			//other forces

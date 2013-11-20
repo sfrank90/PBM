@@ -154,11 +154,13 @@ int main(int argc, char *argv[]) {
 			p[2] = col == 0 ? 0.0 * m : (rand() / double(RAND_MAX) - 0.5) * 0.01 * m;
 			particles.push_back(Particle(mass, p, Velocity3D(), col == 0));
 
-			if (row > 0 && col > 0)
+            //diagonal springs
+            if (row > 0 && col > 0)
 				springs.push_back(Spring(particles[(row - 1) * num_cols + (col - 1)], particles.back(), stiffness, springDamping, shrinkage));
 			if (row > 0 && col < num_cols - 1)
 				springs.push_back(Spring(particles[(row - 1) * num_cols + (col + 1)], particles.back(), stiffness, springDamping, shrinkage));
-			if (row > 0)
+            //horizontal and vertical springs
+            if (row > 0)
 				springs.push_back(Spring(particles[(row - 1) * num_cols + col], particles.back(), stiffness, springDamping, shrinkage));
 			if (col > 0)
 				springs.push_back(Spring(particles[row * num_cols + (col - 1)], particles.back(), stiffness, springDamping, shrinkage));
