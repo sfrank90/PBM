@@ -25,7 +25,7 @@ const size_t dimx = 2, dimy = 2, dimz = 2; // Number of particles in the solid b
 const Stiffness stiffness = 90e4 * g / s / s; // Stiffness of springs in the solid body.
 const SpringDamping springDamping = 90.0 * g / s; // Damping in springs.
 const ParticleDamping particleDamping = 1.0 * g / s; // Damping in particles.
-const Mass mass = 150.0 * g / (dimx * dimy); // Mass of each particle.
+const Mass mass = 400.0 * g / (dimx * dimy); // Mass of each particle.
 const Length scale = 2.0 * m; // Length scale for display.
 float shrinkage = 1.0; // Shrinkage of springs with respect to their initial length.
 ReflectionCoefficient bounciness = 3e4 * kg / s / s; // Bounciness of the planes.

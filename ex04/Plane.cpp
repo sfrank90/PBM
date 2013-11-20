@@ -48,7 +48,18 @@ Force3D Plane::computeReflectionForce(const Particle &p) const {
 	 * plane (the proportionality constant is stored in "_r"), and should act in the
 	 * direction of the normal of the plane.
 	 */
-	return Force3D();
+    Force3D f_reflect;
+    f_reflect[0] = 0.0 * kg * m /s/s;
+    f_reflect[1] = 0.0 * kg * m /s/s;
+    f_reflect[2] = 0.0 * kg * m /s/s;
+    if(dot(p.position, _n) < _d)
+    {
+        Length dist = dot(_n, p.position);
+        //calculate reflection force (pushback force)
+        f_reflect = (_d - dist) * _r * _n;
+
+    }
+    return f_reflect;
 }
 
 Force3D Plane::computeFrictionForce(const Particle &p) const {
@@ -62,6 +73,14 @@ Force3D Plane::computeFrictionForce(const Particle &p) const {
 	 * particle (the proportionality constant is stored in "_f"), and should act in the
 	 * direction of the velocity of the particle.
 	 */
-	return Force3D();
+    Force3D friction;
+    if (dot(p.position, _n) < _d)
+    {
+        Force3D f_particles = p.mass * p.acceleration;
+        Force f_onplane = dot(-_n, f_particles);
+        friction = _f * f_onplane * (-p.velocity) / norm(p.velocity);
+    }
+
+    return friction;
 }
 
