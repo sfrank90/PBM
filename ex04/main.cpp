@@ -12,6 +12,8 @@
 #include <GL/glut.h>
 #endif
 
+//#define TASK4_3
+
 GLint windowWidth = 800, windowHeight = 600;
 int old_button = -1, old_state = -1, old_x = -1, old_y = -1;
 float modelview_matrix[16] = {1, 0, 0, 0,
@@ -19,17 +21,28 @@ float modelview_matrix[16] = {1, 0, 0, 0,
                               0, 0, 1, 0,
                               0, 0, -6, 1};
 bool running = true;
+#ifdef TASK4_3
+  const Stiffness stiffness = 1e4 * g / s / s; // Stiffness of springs in the solid body.
+  const SpringDamping springDamping = 50.0 * g / s; // Damping in springs.
+  const ParticleDamping particleDamping = 50.0 * g / s; // Damping in particles.
+  ReflectionCoefficient bounciness = 1e4 * kg / s / s; // Bounciness of the planes.
+  const size_t dimx = 30, dimy = 1, dimz = 30; // Number of particles in the solid body.
+#else
+  const Stiffness stiffness = 90e4 * g / s / s; // Stiffness of springs in the solid body.
+  const SpringDamping springDamping = 90.0 * g / s; // Damping in springs.
+  const ParticleDamping particleDamping = 1.0 * g / s; // Damping in particles.
+  ReflectionCoefficient bounciness = 3e4 * kg / s / s; // Bounciness of the planes.
+  const size_t dimx = 2, dimy = 2, dimz = 2; // Number of particles in the solid body.
+#endif
 
 const Time stepsize = 1e-3 * s; // Simulation time step in simulated time.
-const size_t dimx = 2, dimy = 2, dimz = 2; // Number of particles in the solid body.
-const Stiffness stiffness = 90e4 * g / s / s; // Stiffness of springs in the solid body.
-const SpringDamping springDamping = 90.0 * g / s; // Damping in springs.
-const ParticleDamping particleDamping = 1.0 * g / s; // Damping in particles.
-const Mass mass = 400.0 * g / (dimx * dimy); // Mass of each particle.
+
+const Mass mass = 150.0 * g / (dimx * dimy); // Mass of each particle.
 const Length scale = 2.0 * m; // Length scale for display.
-float shrinkage = 1.0; // Shrinkage of springs with respect to their initial length.
-ReflectionCoefficient bounciness = 3e4 * kg / s / s; // Bounciness of the planes.
+float shrinkage = 1; // Shrinkage of springs with respect to their initial length.
 Number friction = 0.6; // Friction coefficient of the planes.
+
+
 
 std::vector<Particle> particles; // List of particles.
 std::vector<Spring> springs; // List of springs.
@@ -184,13 +197,20 @@ void keyboard(unsigned char key, int x, int y) {
  */
 int main(int argc, char *argv[]) {
 	// Create particles and springs.
+#ifdef TASK4_3
+float height = 0.2;
+float x_offset = 0;
+#else
+float height = 5;
+float x_offset = 6;
+#endif
 	particles.reserve(dimx * dimy * dimz);
 	for (size_t z = 0; z < dimz; ++z) {
 		for (size_t y = 0; y < dimy; ++y) {
 			for (size_t x = 0; x < dimx; ++x) {
 				Length3D p;
-				p[0] = (x / float(dimx > 1 ? dimx - 1 : 1) - 0.5) * m - 6 * m;
-				p[1] = (y / float(dimy > 1 ? dimy - 1 : 1) - 0.5) * m + 5 * m;
+				p[0] = (x / float(dimx > 1 ? dimx - 1 : 1) - 0.5) * m - x_offset * m;
+				p[1] = (y / float(dimy > 1 ? dimy - 1 : 1) - 0.5) * m + height * m;
 				p[2] = (z / float(dimz > 1 ? dimz - 1 : 1) - 0.5) * m;
 				particles.push_back(Particle(mass, p, Velocity3D()));
 				// create connections to all existing neighbors
@@ -220,12 +240,22 @@ int main(int argc, char *argv[]) {
 
 	// Create obstacles.
 	Number3D plane_normal;
+
+#ifdef TASK4_3
+	//////////////////////////////
+	plane_normal[0] = 0.0; plane_normal[1] = 1.0; plane_normal[2] = 0.0;
+	Plane *pl = new Plane(plane_normal / norm(plane_normal), -1.0 * m, bounciness, friction);
+	pl->setHalfExtend(0.2,0.2);
+	obstacles.push_back(pl);
+#else
 	plane_normal[0] = 0.5; plane_normal[1] = 1.0; plane_normal[2] = 0.0;
 	obstacles.push_back(new Plane(plane_normal / norm(plane_normal), -1.0 * m, bounciness, friction));
 	plane_normal[0] = 0.0; plane_normal[1] = 1.0; plane_normal[2] = 0.0;
 	obstacles.push_back(new Plane(plane_normal / norm(plane_normal), -1.5 * m, bounciness, friction));
 	plane_normal[0] = -1.0; plane_normal[1] = 0.0; plane_normal[2] = 0.0;
 	obstacles.push_back(new Plane(plane_normal / norm(plane_normal), -5.0 * m, bounciness, friction));
+#endif
+
 
 	// Create a particle system.
 	particle_system = new MassSpringSystem(particles, springs, obstacles, particleDamping);

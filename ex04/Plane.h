@@ -16,6 +16,14 @@ class Plane: public Obstacle {
 		Plane(const Number3D &n, const Length &d, const ReflectionCoefficient &r=ReflectionCoefficient(), const Number &f=Number());
 
 		/**
+		* 
+		*/
+		void setHalfExtend(float x, float y) {
+			_extendX = x;
+			_extendY = y;
+			init();
+		}
+		/**
 		 * Destroy the plane.
 		 */
 		~Plane() {}
@@ -43,10 +51,15 @@ class Plane: public Obstacle {
 		/**
 		 * Draw the obstacle on the screen.
 		 */
-		void draw(const Length &scale) const;
+		virtual void draw(const Length &scale) const;
 	private:
 		Number3D _n; //< The normal vector.
 		Length _d; //< The scalar distance from the origin.
+		float _extendX, _extendY;
+		Number3D _p1,_p2,_p3,_p4;
+		void init();
+		bool isParticleOnPlane(const Particle &p) const;
+
 };
 
 #endif
