@@ -25,6 +25,7 @@ float modelview_matrix[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 const Time stepsize = 1e-2 * s; // Simulation time step in simulated time.
 const Stiffness stiffness = 3e7 * g / s / s; // Stiffness of springs in the cloth.
 const Length scale = 2.0 * m; // Length scale for display.
+const SpringDamping springDamping = 1.0 * g / s; // Damping in springs.
 
 std::vector<Particle<Length3D> > particles; // List of particles.
 std::vector<Spring> springs; // List of springs.
@@ -199,6 +200,24 @@ int main(int argc, char *argv[]) {
 	 * Then create a solver "ms_solver" for particles of that type.
 	 */
 
+	// MS SYSTEM
+	// generate particles
+	Length3D p0; p0[0] = 0.0 * m; p0[1] = 0.0 * m; p0[2] = 0.0 * m; 
+	Length3D p1; p1[0] = sin(120) * 1.0 * m; p1[1] = - cos(120)* 1.0 * m; p1[2] = 0.0 * m; 
+	Length3D p2; p2[0] = sin(60) * 1.0 * m; p2[1] = - cos(60) * 1.0 * m; p2[2] = 0.0 * m; 
+	p2 += p1;
+	particles.push_back(Particle<Length3D>(1.0 * kg, p0, Velocity3D(), true, "P0"));
+	particles.push_back(Particle<Length3D>(1.0 * kg, p1, Velocity3D(), false, "P1"));
+	particles.push_back(Particle<Length3D>(1.0 * kg, p2, Velocity3D(), false, "P2"));
+	//generate springs
+	springs.push_back(Spring(particles[0], particles[1], stiffness, springDamping, 1.0 * m));
+	springs.push_back(Spring(particles[1], particles[2], stiffness, springDamping, 1.0 * m));
+	//create system
+	ms_system = new MassSpringSystem(particles, springs);
+	//create solver
+	ms_solver = new RungeKuttaSolver<Particle<Length3D>>(ms_system);
+
+	// DOUBLE PENDULUM CREATION
 	for (size_t i = 0; i < num_el_systems; ++i) {
 		std::vector<Particle<Angle> > *particles = new std::vector<Particle<Angle> >;
 		particles->push_back(Particle<Angle>(1.0 * kg, (i == 0 ? 120 : (120 + rand() / double(RAND_MAX))) * M_PI / 180, 0 / s));
@@ -213,8 +232,10 @@ int main(int argc, char *argv[]) {
 		color[0] = i == 0 ? 0.0 : rand() / double(RAND_MAX);
 		color[1] = i == 0 ? 1.0 : rand() / double(RAND_MAX);
 		color[2] = i == 0 ? 0.0 : rand() / double(RAND_MAX);
+		std::cout << color << std::endl;
 		el_colors.push_back(color);
 	}
+
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
