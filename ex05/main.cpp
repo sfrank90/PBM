@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
 	//create system
 	ms_system = new MassSpringSystem(particles, springs);
 	//create solver
-	ms_solver = new RungeKuttaSolver<Particle<Length3D>>(ms_system);
+    ms_solver = new RungeKuttaSolver<Particle<Length3D> >(ms_system);
 
 	// DOUBLE PENDULUM CREATION
 	for (size_t i = 0; i < num_el_systems; ++i) {
