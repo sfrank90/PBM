@@ -21,16 +21,15 @@ void DoublePendulum::computeAccelerations() {
     m1 = particles[0].mass;
     m2 = particles[1].mass;
 
-    AngularVelocity d = (p2_v - p1_v);
-    double diff_vel = ((p2_v - p1_v)*s/m).value_type;
+    Angle diff_ang = (p2_p - p1_p);
 
-    /*particles[0].velocity = p1_v;
+    particles[0].velocity = p1_v;
     particles[1].velocity = p2_v;
 
-    particles[0].acceleration = (m2 * l1 * p1_v * p1_v * sin(diff_vel) * cos(diff_vel) + m2 * l2 * p2_v *p2_v *sin(diff_vel) - (m1+m2) * g * sin(p1_p))/ ((m1+m2)*l1 - m2*l1*cos(diff_vel)*cos(diff_vel));
-    particles[1].acceleration = (-m2 * l2 * p2_v * p2_v * sin(diff_vel) * cos(diff_vel) + (m1+m2) +(g*sin(p1_p) * cos(diff_vel) - l1 * p1_v * p1_v *sin(diff_vel) -g * sin(p2_p)))/ ((m1+m2)*l2 - m2*l2*cos(diff_vel)*cos(diff_vel));
+	Acceleration _g = 9.81*m/s/s;
 
-*/
+	particles[0].acceleration = (m2 * l1 * p1_v * p1_v * sin(diff_ang) * cos(diff_ang) + m2 * l2 * p2_v *p2_v *sin(diff_ang) - (m1+m2) * _g * sin(p1_p))/ ((m1+m2)*l1 - m2*l1*cos(diff_ang)*cos(diff_ang));
+	particles[1].acceleration = (-m2 * l2 * p2_v * p2_v * sin(diff_ang) * cos(diff_ang) + (m1+m2)*(_g*sin(p1_p) * cos(diff_ang) - l1 * p1_v * p1_v *sin(diff_ang) -_g * sin(p2_p)))/ ((m1+m2)*l2 - m2*l2*cos(diff_ang)*cos(diff_ang));
 
 }
 
