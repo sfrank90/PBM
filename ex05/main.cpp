@@ -202,9 +202,12 @@ int main(int argc, char *argv[]) {
 
 	// MS SYSTEM
 	// generate particles
+#ifndef M_PI
+	const double M_PI = 3,1415926535897932384626433;
+#endif
 	Length3D p0; p0[0] = 0.0 * m; p0[1] = 0.0 * m; p0[2] = 0.0 * m; 
-	Length3D p1; p1[0] = sin(120) * 1.0 * m; p1[1] = - cos(120)* 1.0 * m; p1[2] = 0.0 * m; 
-	Length3D p2; p2[0] = sin(60) * 1.0 * m; p2[1] = - cos(60) * 1.0 * m; p2[2] = 0.0 * m; 
+	Length3D p1; p1[0] = sin((120/180.0) *M_PI) * 1.0 * m; p1[1] = - cos((120/180.0) *M_PI)* 1.0 * m; p1[2] = 0.0 * m; 
+	Length3D p2; p2[0] = sin((60/180.0) *M_PI) * 1.0 * m; p2[1] = - cos((60/180.0) *M_PI) * 1.0 * m; p2[2] = 0.0 * m; 
 	p2 += p1;
 	particles.push_back(Particle<Length3D>(1.0 * kg, p0, Velocity3D(), true, "P0"));
 	particles.push_back(Particle<Length3D>(1.0 * kg, p1, Velocity3D(), false, "P1"));

@@ -1,0 +1,18 @@
+5.3 Experiments
+
+a) Compare both solutions for a few hundred iterations. What do you notice?
+
+Zunächst verlaufen die Bewgungen von beiden Pendeln gleich. Nach einigen hundert Iterationen hängt die Mass-Spring Lösung der analytischen Lösung hinterher. Ab diesem Punkt verlaufen die Bewegungen verschieden.
+
+b) How do both solutions change when you change the step size?
+
+Beim Vergrößern der "Stepsize" erhöht sich zunächst einmal bei beiden Pendeln die Geschwindigkeit. Ab einer gewissen Größe wird das rote Pendel zerstört. Das Grüne hingegen bleibt etwas länger stabil in der Berechnung, wird aber auch ab einem gewissen Wert "zerstört".
+
+c) How does the mass-spring solution change when you increase or decrease the stiffness? What if you introduce damping?
+
+Ab einer Steifheit von >= 3.4e7 spielt die Brechnung des Mass-Spring Systems verrückt und haut irgendwann ab.
+Reduziert man die Steifheit, so fängt das rote Pendel an zu "eiern" bzw. zittern. Dies resultiert aus der Dehnung der Federn im Systems.
+
+d) By increasing num_elsystems, you can create several Euler-Lagrange solutions with slightly different initial conditions. What do you observe?
+
+Die verschiedenen Euler-Lagrange Lösungen laufen einige hundert Iterationen nahezu identische ab. Doch nach einigen hundert Iterationen "entwickeln" sich verschieden Bewegungsabläufe für die Systeme. Diese Unterschieden resultieren aus den leicht verschiedenen Anfangspositionen (120 + rand() / double(RAND_MAX), 60 + rand() / double(RAND_MAX)). Der Winkelunterschied für die Startposition ist zu Beginn nicht größer als maximal +1. Dies hat jedoch nach einigen hundert Iterationen Auswirkungen auf das Pendel. Lediglich das erste System bekommt genau die Winkel 120° und 60° für die Startpositionen.
