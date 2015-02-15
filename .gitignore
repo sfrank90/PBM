@@ -25,7 +25,7 @@
 wiki/
 
 # Visual Studio Files
-*/Debug/*
+Debug/
 *.sln
 *.sdf
 *.opensdf
